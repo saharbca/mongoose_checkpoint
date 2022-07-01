@@ -1,0 +1,89 @@
+const express = require('express')
+const router=express.Router()
+const Person = require('../Models/person')
+
+//Create and Save a Record of a Model
+router.post('/newPerson',(req,res)=>{
+    let newPerson= new Person(req.body)
+    newPerson.save((err,data)=>{
+        err? console.log(err) : res.send ('person is created')
+    })
+})
+
+//Create Many Records with model.create()
+const arrayOfPeople = [
+    { name: "sahar", age: 22, favoriteFoods: ["pasta pizza "] },
+    { name: "salma", age: 15, favoriteFoods: ["pasta"] },
+    { name: "amina", age: 25, favoriteFoods: ["cake"] }
+  ];
+router.post('/createPeople',(req,res)=>{
+    Person.create(arrayOfPeople, (err, data) => {
+        err? console.log(err) : res.send('people are created')
+    })
+  })
+
+//Use model.find() to Search Your Database
+router.get('/getPerson',(req,res)=>{
+    Person.find( {name: 'sahar'}, (err,data)=>{
+        err? console.log(err) : res.send(data)
+    })
+})
+
+//Use model.findOne() to Return a Single Matching Document from Your Database
+router.get('/food',(req,res)=>{
+    Person.findOne({favoriteFoods : 'pasta' },(err,data)=>{
+        err? console.log(err) : res.send(data)
+    })
+})
+
+//Use model.findById() to Search Your Database By _id
+router.get('/findById',(req,res)=>{
+    Person.findById("62bec5741b4f0183456c8714",(err,data)=>{
+        err? console.log(err) : res.send(data)
+    })
+    })
+
+//Perform Classic Updates by Running Find, Edit, then Save
+router.put('/updateById',(req,res)=>{
+    Person.findById("62bec5741b4f0183456c8714")
+    .then(person=>{
+        person.favoriteFoods.push('hamburger')
+        person.save().then(pers=>res.send(pers))
+    })
+})
+
+//Perform New Updates on a Document Using model.findOneAndUpdate()
+router.put('/findOneAndUpdate',(req,res)=>{
+    Person.findOneAndUpdate({name:'sahar'},{age:20}, {new:true})
+    .then(person=>{
+        person.save().then(pers=>res.send(pers))
+    })
+})
+
+//Delete One Document Using model.findByIdAndRemove
+router.delete('/findOneAndRemove',(req,res)=>{
+    Person.findOneAndRemove({_id:'62bedb61582eb394c7dfd2f9'},(err,data)=>{
+        err? console.log(err) : res.send('person is removed')
+    })
+})
+
+//Delete Many Documents with model.remove()
+router.delete('/removeMany',(req,res)=>{
+    Person.remove({name:'sahar'},(err,data)=>{
+        err? console.log(err) : res.send(data)
+    })
+})
+
+//Chain Search Query Helpers to Narrow Search Results
+router.get('/chainSearch',(req,res)=>{
+    Person.find({favoriteFoods : "burritos" })
+        .select({age:0})                
+        .limit(2)              
+        .sort({name: 1})    
+        .select({age:0}) 
+        .exec((err,data)=>{
+            err? console.log(err) : res.send(data)
+        })                   
+            
+}) 
+module.exports = router
